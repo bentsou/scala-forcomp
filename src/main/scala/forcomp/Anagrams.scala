@@ -60,16 +60,25 @@ object Anagrams {
    *
    */
   lazy val dictionaryByOccurrences: Map[Occurrences, List[Word]] = {
-    //val k = dictionary map (word => (wordOccurrences(word), List(word)))
-    val k = for (w <- dictionary) yield (wordOccurrences(w), List(w))
+
+    /** Make a List of all Words from x. */
+    def flatten(x: List[(Occurrences, List[Word])]): List[Word] =
+      x match { 
+        case List(elem) => elem._2
+        case elem::elemTail => elem._2 ++ flatten(elemTail)
+      }
     
-    val l = k groupBy(p => p._1)
-    val n = for ((key, value) <- l) yield (key, value foldLeft(List())((v1:(Occurrences, List[Word]), v2:(Occurrences, List[Word])) => (v1._2 ++ v2._2)))
-    
+    val occrWordPair = for (word <- dictionary) yield (wordOccurrences(word), List(word))
+    val grouped = occrWordPair groupBy(p => p._1)
+    grouped map ((a) => (a._1, flatten(a._2)))
   }
 
   /** Returns all the anagrams of a given word. */
-  def wordAnagrams(word: Word): List[Word] = ???
+  def wordAnagrams(word: Word): List[Word] =
+    dictionaryByOccurrences.get(wordOccurrences(word)) match {
+      case Some(p) => p
+      case None => List()
+    }
 
   /** Returns the list of all subsets of the occurrence list.
    *  This includes the occurrence itself, i.e. `List(('k', 1), ('o', 1))`
@@ -93,7 +102,13 @@ object Anagrams {
    *  Note that the order of the occurrence list subsets does not matter -- the subsets
    *  in the example above could have been displayed in some other order.
    */
-  def combinations(occurrences: Occurrences): List[Occurrences] = ???
+  def combinations(occurrences: Occurrences): List[Occurrences] = {
+    occurrences match {
+      case List() => List()
+      case List(o) => (1 to o._2) map (c => List((o._1, c)))
+      case o::os => ((1 to o._2) map (c => List((o._1, c)))) ++ combinations(os)
+    }
+  }
 
   /** Subtracts occurrence list `y` from occurrence list `x`.
    * 
