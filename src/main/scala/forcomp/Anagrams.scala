@@ -103,11 +103,18 @@ object Anagrams {
    *  in the example above could have been displayed in some other order.
    */
   def combinations(occurrences: Occurrences): List[Occurrences] = {
-    occurrences match {
-      case List() => List()
-      case List(o) => (1 to o._2) map (c => List((o._1, c)))
-      case o::os => ((1 to o._2) map (c => List((o._1, c)))) ++ combinations(os)
+    def makeOccur(c: Char, n: Int):  List[(Char, Int)] =
+      if (n == 0) Nil else List((c, n))
+        
+    def makeCombinations(o: Occurrences): List[Occurrences] = {
+      if (o.isEmpty) List(List())
+      else
+	    for {
+	      subComb <- makeCombinations(o drop 1)
+	      count <- (0 to o.head._2)
+	      } yield makeOccur(o.head._1, count)++subComb
     }
+    makeCombinations(occurrences)
   }
 
   /** Subtracts occurrence list `y` from occurrence list `x`.
@@ -120,7 +127,24 @@ object Anagrams {
    *  Note: the resulting value is an occurrence - meaning it is sorted
    *  and has no zero-entries.
    */
-  def subtract(x: Occurrences, y: Occurrences): Occurrences = ???
+  def subtract(x: Occurrences, y: Occurrences): Occurrences = {
+    val mx = x.toMap
+    val my = y.toMap
+    
+    val subtracted = mx.foldLeft(List[(Char, Int)]())(
+        (o1, o2) => {
+          val key = o2._1
+          val value = o2._2
+          
+          my.get(key) match {
+            case Some(v) => (key, value - v)::o1
+            case None => (key, value)::o1
+          }
+        }
+    )
+    
+    (subtracted.filter(_._2 != 0)).toList.sorted
+  }
 
   /** Returns a list of all anagram sentences of the given sentence.
    *  
@@ -162,6 +186,20 @@ object Anagrams {
    *
    *  Note: There is only one anagram of an empty sentence.
    */
-  def sentenceAnagrams(sentence: Sentence): List[Sentence] = ???
-
+  def sentenceAnagrams(sentence: Sentence): List[Sentence] = {
+    def sentencesByOccurrences(occ: Occurrences): List[Sentence] = {
+      if (occ.isEmpty) List(Nil)
+      else
+        for {
+          occur <- combinations(occ)
+          word <- dictionaryByOccurrences.get(occur) match {
+            case Some(wordList) => wordList
+            case None => Nil
+          }
+          subAna <- sentencesByOccurrences(subtract(occ, occur))
+        } yield word::subAna
+    }
+    
+    sentencesByOccurrences(sentenceOccurrences(sentence))
+  }
 }

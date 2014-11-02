@@ -1,9 +1,13 @@
 package forcomp
+import Anagrams._
 
 object worksheet {
-	val k = List(('a', 2), ('b', 2))          //> k  : List[(Char, Int)] = List((a,2), (b,2))
-	val j = ('a', 2)                          //> j  : (Char, Int) = (a,2)
+	val o1 = wordOccurrences("larrd")         //> o1  : forcomp.Anagrams.Occurrences = List((a,1), (d,1), (l,1), (r,2))
+	val o2 = wordOccurrences("ard")           //> o2  : forcomp.Anagrams.Occurrences = List((a,1), (d,1), (r,1))
 	
-	(1 to j._2) map (c => List((j._1, c)))    //> res0: scala.collection.immutable.IndexedSeq[List[(Char, Int)]] = Vector(List
-                                                  //| ((a,1)), List((a,2)))
+	o1.toMap                                  //> res0: scala.collection.immutable.Map[Char,Int] = Map(a -> 1, d -> 1, l -> 1,
+                                                  //|  r -> 2)
+      
+   
+ subtract(o1, o2)                                 //> res1: forcomp.Anagrams.Occurrences = List((l,1), (r,1))
 }
